@@ -1,1 +1,248 @@
-Ag
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+!
+! Filename: diel_fun_Ag.mac, ANSYS APDL script
+! by Kolchuzhin V., TU Chemnitz, LMGT
+! <vladimir.kolchuzhin@etit.tu-chemnitz.de>
+! 13:21 26.07.2013
+! 
+! www.zfm.tu-chemnitz.de/for1713
+! TP2<->TP4 (www.ters-team.com)
+!
+! Issue: MP: dielectric function of silver (Ag) vs lambda
+!
+! Rev.:
+!
+!	14:21 16.10.2014
+!
+! Status: OK
+!
+! Reference:
+!
+!	Tabulated data [EineV n k] for Silver from [Palik Vol.1, pp. 355-356]
+!
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+!
+! INPUT:
+!		arg1==lambda, wavelength in nm
+!
+! OUTPUT:
+!		epsilon_re - is the real part of dielectric function
+!		epsilon_im - is the imaginary part of dielectric function
+!
+! USAGE:	diel_fun_Ag,514
+!
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+!
+! OPTIONS:
+!
+! key_model=1	! analytical Drude model
+! key_model=2	! Lorenz-Drude _optional_
+! key_model=3	! rational fit
+!
+!	for key_model=3: 
+!	the valid range is 248.4653nm(4.99eV) to 1698.4nm(0.73eV)
+!		fit error for epsilon_re ...
+!		fit error for epsilon_im ...
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+!
+! Test data:
+!
+!	arg1=514.0	! WAVELENGTH, GREEN
+!	arg1=632.8	! WAVELENGTH, RED
+!
+!
+! eV			lambda		epsilon_re	epsilon_im
+!			514.0		-9.276731540	0.4014258830 Drude
+!			514.0		-9.125983252	0.7876078904 rat fit
+!			632.8		-16.11376527	0.7487053332 Drude
+!			632.8		-16.10096617	1.055242210  rat fit
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+
+!key_model=1	! analytical Drude model
+key_model=3	! rational fit
+
+
+EineV=1239.84187/arg1		! nm --> eV
+lambda=arg1			! nm
+
+density=1.49e4			! Ag mass density, kg/m3
+!==========================================================================!
+!==========================================================================!
+*IF,key_model,EQ,1,THEN	! Drude model
+
+eps_inf=4	!
+lambda_p=282	! nm
+mu_p=17000	! nm
+
+
+lambda2=lambda*lambda
+lambda4=lambda2*lambda2
+lambda_p2=lambda_p*lambda_p
+mu_p2=mu_p*mu_p
+
+
+_numerator=lambda_p2/lambda4 + lambda_p2/lambda2/mu_p2 - 1/lambda2
+_denominator=lambda_p2*(1/lambda4 + 1/lambda2/mu_p2)
+
+epsilon_re=eps_inf*_numerator/_denominator
+epsilon_im=eps_inf*(1/mu_p/lambda)/_denominator
+
+
+!--------------------------------------------------------------------------!
+! delete local parameters
+*DEL,_numerator
+*DEL,_denominator
+
+
+*ENDIF
+!==========================================================================!
+!==========================================================================!
+*IF,key_model,EQ,2,THEN	! optional LD model
+
+epsilon_re=0
+epsilon_im=0
+
+*ENDIF
+!==========================================================================!
+!==========================================================================!
+*IF,key_model,EQ,3,THEN	! rational fit
+
+!==========================================================================!
+! real part of epsilon
+
+order=8
+
+*DEL,_norm		$*DIM,_norm,,4,4
+*DEL,_numerator		$*DIM,_numerator,,order+1,1
+*DEL,_denominator	$*DIM,_denominator,,order+1,1
+*DEL,_term 		$*DIM,_term,,order+1,1
+
+_norm(1,1)=7.30000000e-01	$_norm(1,2)=4.99000000e+00	! xmin xmax
+_norm(2,1)=1.04800685e+02	$_norm(2,2)=1.00000000e+00	! f_max dim
+
+
+_numerator(1)=     -5.01690869e-02 !  p1^0
+_numerator(2)=      1.44604251e-01 !  p1^1
+_numerator(3)=      9.78391863e-02 !  p1^2
+_numerator(4)=     -5.24306852e-01 !  p1^3
+_numerator(5)=      1.26494084e-01 !  p1^4
+_numerator(6)=      6.29530140e-01 !  p1^5
+_numerator(7)=     -3.89058718e-01 !  p1^6
+_numerator(8)=     -2.50216029e-01 !  p1^7
+_numerator(9)=      2.19956152e-01 !  p1^8
+
+_denominator(1)=    1.00000000e+00 !  p1^0
+_denominator(2)=   -2.23473866e-01 !  p1^1
+_denominator(3)=   -5.68092643e+00 !  p1^2
+_denominator(4)=   -3.23228738e-01 !  p1^3
+_denominator(5)=    1.23573884e+01 !  p1^4
+_denominator(6)=    5.57694324e+00 !  p1^5
+_denominator(7)=   -8.28435150e+00 !  p1^6
+_denominator(8)=   -6.86154565e+00 !  p1^7
+_denominator(9)=   -1.22890123e+00 !  p1^8
+
+!--------------------------------------------------------------------------!
+
+kx=2/(_norm(1,2)-_norm(1,1))
+cx=_norm(1,1)+1/kx
+
+_term(1)=1.0
+
+
+*DO,i,2,order+1
+	nEineV=kx*(EineV-cx)
+	_term(i)=nEineV**(i-1)
+*ENDDO
+
+Pn=0
+Pd=0
+
+*DO,i,1,order+1
+	Pn = Pn + _numerator(i)*_term(i)
+	Pd = Pd + _denominator(i)*_term(i)
+*ENDDO
+
+epsilon_re=Pn/Pd*_norm(2,1)
+
+!--------------------------------------------------------------------------!
+! delete local parameters
+*DEL,_norm
+*DEL,_numerator
+*DEL,_denominator
+*DEL,_term
+!==========================================================================!
+! imaginary part of epsilon
+
+order=10
+
+*DEL,_norm		$*DIM,_norm,,4,4
+*DEL,_numerator		$*DIM,_numerator,,order+1,1
+*DEL,_denominator	$*DIM,_denominator,,order+1,1
+*DEL,_term 		$*DIM,_term,,order+1,1
+
+_norm(1,1)=7.30000000e-01	$_norm(1,2)=4.99000000e+00
+_norm(2,1)=1.08258981e+01	$_norm(2,2)=1.00000000e+00
+
+
+_numerator(1)=      6.57898497e-02 !  p1^0
+_numerator(2)=     -2.99183781e-03 !  p1^1
+_numerator(3)=     -5.47985818e-01 !  p1^2
+_numerator(4)=     -2.49409928e-01 !  p1^3
+_numerator(5)=      1.71343772e+00 !  p1^4
+_numerator(6)=      2.17124653e+00 !  p1^5
+_numerator(7)=     -1.69442419e+00 !  p1^6
+_numerator(8)=     -5.79407527e+00 !  p1^7
+_numerator(9)=     -1.55307855e+00 !  p1^8
+_numerator(10)=     5.56520073e+00 !  p1^9
+_numerator(11)=     3.74820060e+00 !  p1^10
+
+
+_denominator(1)=    1.00000000e+00 !  p1^0
+_denominator(2)=    2.24629980e-01 !  p1^1
+_denominator(3)=   -8.60102384e+00 !  p1^2
+_denominator(4)=   -2.63218451e+00 !  p1^3
+_denominator(5)=    2.87651805e+01 !  p1^4
+_denominator(6)=    1.23926852e+01 !  p1^5
+_denominator(7)=   -4.37071527e+01 !  p1^6
+_denominator(8)=   -2.55503644e+01 !  p1^7
+_denominator(9)=    2.52230802e+01 !  p1^8
+_denominator(10)=   2.07954664e+01 !  p1^9
+_denominator(11)=   2.59211383e+00 !  p1^10
+
+!--------------------------------------------------------------------------!
+
+kx=2/(_norm(1,2)-_norm(1,1))
+cx=_norm(1,1)+1/kx
+
+
+
+_term(1)=1.0
+
+
+*DO,i,2,order+1
+	nEineV=kx*(EineV-cx)
+	_term(i)=nEineV**(i-1)
+*ENDDO
+
+Pn=0
+Pd=0
+
+*DO,i,1,order+1
+	Pn = Pn + _numerator(i)*_term(i)
+	Pd = Pd + _denominator(i)*_term(i)
+*ENDDO
+
+epsilon_im=Pn/Pd*_norm(2,1)
+
+!--------------------------------------------------------------------------!
+! delete local parameters
+*DEL,_norm
+*DEL,_numerator
+*DEL,_denominator
+*DEL,_term
+
+*ENDIF
+!==========================================================================!
+!==========================================================================!
