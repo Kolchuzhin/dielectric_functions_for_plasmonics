@@ -2,64 +2,80 @@
 !xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
 !
 ! Filename: diel_fun_Au.mac, ANSYS APDL script
-! by Kolchuzhin V., LMGT, TU Chemnitz
+! by Kolchuzhin V., TU Chemnitz, LMGT
 ! <vladimir.kolchuzhin@etit.tu-chemnitz.de>
 ! 13:21 26.07.2013
 !
 ! www.zfm.tu-chemnitz.de/for1713
-! TP2<->TP4
+! TP2<->TP4 (www.ters-team.com)
 !
-! Issue: MP: dielectric function of Au vs lambda
+! Issue: MP: dielectric function of gold (Au) vs lambda
 !
 ! Rev.:
 !
-!	14:20 07.08.2013
+!	14:21 16.10.2014
 !
 ! Status: OK
 !
-! Reference: Gold (From Palik I: pp.293-294)
+! Reference:
+! 
+!	Tabulated data [EineV n k] for Gold from [Palik Vol.1, pp.293-294]
 !
-!==========================================================================!
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+!
 ! INPUT:
-!		arg1==lambda, wavelength in nm ( nm)
+!		arg1==lambda, wavelength in nm
+!
 !
 ! OUTPUT:
 !		epsilon_re - is the real part of dielectric function
-!		epsilon_im - is the imag part of dielectric function
+!		epsilon_im - is the imaginary part of dielectric function
 !
-! USAGE:		diel_fun_Au,514
+! USAGE:	diel_fun_Au,514
 !
 !xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+!
+! OPTIONS:
+!
+! key_model=1	! analytical Drude model
+! key_model=2	! Lorenz-Drude _optional_
+! key_model=3	! rational fit
+!
+!	for key_model=3: 
+!	the valid range is 248.4653nm(4.99eV) to 1698.4nm(0.73eV)
+!		fit error for epsilon_re < 6% at [500…900] nm
+!		fit error for epsilon_im < 6% at [248.5…900] nm
 !xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
 !
-! test data
+! Test data:
 !
 !	arg1=514.0	! WAVELENGTH, GREEN
 !	arg1=632.8	! WAVELENGTH, RED
 !
 !
-! eV	eps		lambda		epsilon_re	epsilon_im
-!			514.0
-!			514.0		-4.059523303	2.734168571 rat fit
-!			632.8
-!			632.8		-9.364499351	1.193765181 rat fit
-!--------------------------------------------------------------------------
+! eV			lambda		epsilon_re	epsilon_im
+!			514.0		-11.35747993	0.4571934265 Drude
+!			514.0		-4.059523303	2.734168571  rat fit
+!			632.8		-17.99577252	0.8525680585 Drude
+!			632.8		-9.364499351	1.193765181  rat fit
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
 
-key_=1		! analytical Drude model
- !key_=2	! Lorenz-Drude optional
-key_=3		! rat fitted
+!key_model=1	! analytical Drude model
+key_model=3	! rational fit
 
 
-lambda=arg1			! nm
 EineV=1239.84187/arg1		! nm --> eV
+lambda=arg1			! nm
 
+density=1.93e4			! Au mass density, kg/m3
 !==========================================================================!
 !==========================================================================!
-*IF,key_,EQ,1,THEN	! 
+*IF,key_model,EQ,1,THEN	!  Drude model
 
-eps_inf=0	!
-lambda_p=0	! nm
-mu_p=0		! nm
+eps_inf=1.54	!
+lambda_p=177.5	! nm
+mu_p=14500	! nm
 
 
 lambda2=lambda*lambda
@@ -71,8 +87,8 @@ mu_p2=mu_p*mu_p
 _numerator=lambda_p2/lambda4 + lambda_p2/lambda2/mu_p2 - 1/lambda2
 _denominator=lambda_p2*(1/lambda4 + 1/lambda2/mu_p2)
 
-epsilon_re=0.0 !eps_inf*_numerator/_denominator
-epsilon_im=0.0 !eps_inf*(1/mu_p/lambda)/_denominator
+epsilon_re=eps_inf*_numerator/_denominator
+epsilon_im=eps_inf*(1/mu_p/lambda)/_denominator
 
 
 !--------------------------------------------------------------------------!
@@ -84,7 +100,7 @@ epsilon_im=0.0 !eps_inf*(1/mu_p/lambda)/_denominator
 *ENDIF
 !==========================================================================!
 !==========================================================================!
-*IF,key_,EQ,2,THEN	! 
+*IF,key_model,EQ,2,THEN	! optional LD model
 
 epsilon_re=0
 epsilon_im=0
@@ -92,8 +108,9 @@ epsilon_im=0
 *ENDIF
 !==========================================================================!
 !==========================================================================!
-*IF,key_,EQ,3,THEN	! 
+*IF,key_model,EQ,3,THEN	! rational fit
 
+!==========================================================================!
 ! real part of epsilon
 
 order=8
@@ -157,8 +174,7 @@ epsilon_re=Pn/Pd*_norm(2,1)
 *DEL,_denominator
 *DEL,_term
 !==========================================================================!
-!==========================================================================!
-! imag
+! imaginary part of epsilon
 
 order=12
 
