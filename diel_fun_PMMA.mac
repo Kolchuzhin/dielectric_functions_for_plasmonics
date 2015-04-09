@@ -1,0 +1,131 @@
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+!
+! Filename: diel_fun_PMMA.mac, ANSYS APDL script
+! by Kolchuzhin V., TU Chemnitz, LMGT
+! <vladimir.kolchuzhin@etit.tu-chemnitz.de>
+! 14:38 28.05.2014
+!
+! www.zfm.tu-chemnitz.de/for1713
+! TP2<->TP4 (www.ters-team.com)
+!
+! Issue: MP: dielectric function of PMMA vs lambda
+!       PMMA: Poly(methyl methacrylate), PMMA, Acrylic glass: (C5O2H8)n
+!
+! Rev.:
+!
+!	17:20 28.05.2014
+!
+! Status: OK
+!
+! Reference: 
+!	http://refractiveindex.info/?shelf=organic&book=poly%28methyl_methacrylate%29&page=Sultanova
+!
+!	Sultanova et al. Analysis of the dispersion of optical plastic materials, 
+!	Optical Materials 29, 1481-1490 (2007) doi:10.1016/j.optmat.2006.07.010
+!
+!	at 20 C; Wavelength: (0.4358...1.052) µm
+!
+!==========================================================================!
+!
+! INPUT:
+!		arg1==lambda, wavelength in nm
+!
+! OUTPUT:
+!		epsilon_re - is the real part of dielectric function
+!		epsilon_im - is the imag part of dielectric function
+!		   density - is the PMMA mass density, kg/m3
+!
+! USAGE:	diel_fun_PMMA,514
+!
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+!
+! Refractive index
+! n = SQRT( 2.399964 - 8.308636E-2*x**2 - 1.919569E-1*x**(-2) + 
+!                      8.720608E-2*x**(-4) - 1.666411E-2*x**(-6) + 1.169519E-3*x**(-8) ) 
+!
+! test data
+!
+!	arg1=514.0	! WAVELENGTH, GREEN
+!	arg1=632.8	! WAVELENGTH, RED
+!
+! fit error 
+!--------------------------------------------------------------------------!
+lambda=arg1			! nm
+EineV=1239.84187/arg1		! nm --> eV
+lambda_um=arg1/1000		! nm --> um
+
+density=1.190e3		! PMMA mass density, kg/m3  (1.17...1.20 g/cm3)
+!==========================================================================!
+!==========================================================================!
+
+! n**2 - refractive index
+
+order=8
+
+*DEL,_norm		$*DIM,_norm,,4,4
+*DEL,_numerator		$*DIM,_numerator,,order+1,1
+*DEL,_denominator	$*DIM,_denominator,,order+1,1
+*DEL,_term 		$*DIM,_term,,order+1,1
+
+!--------------------------------------------------------------------------!
+! data
+_norm(1,1)=0.0	$_norm(1,2)=2.00000000e+00	! xmin xmax
+_norm(2,1)=1.0 	$_norm(2,2)=1.00000000e+00	! f_max dim
+
+_numerator(1)=      2.399964	!  p1^0
+_numerator(2)=      0.0 	!  p1^1
+_numerator(3)=     -8.308636E-2 !  p1^2
+_numerator(4)=      0.0 	!  p1^3
+_numerator(5)=      0.0 	!  p1^4
+_numerator(6)=      0.0 	!  p1^5
+_numerator(7)=      0.0 	!  p1^6
+_numerator(8)=      0.0 	!  p1^7
+_numerator(9)=      0.0 	!  p1^8
+
+
+_denominator(1)=    1.00000e+00	!  p1^0
+_denominator(2)=    0.0 	!  p1^1
+_denominator(3)=   -1.919569E-1	!  p1^2
+_denominator(4)=    0.0 	!  p1^3
+_denominator(5)=    8.720608E-2 !  p1^4
+_denominator(6)=    0.0 	!  p1^5
+_denominator(7)=   -1.666411E-2 !  p1^6
+_denominator(8)=    0.0 	!  p1^7
+_denominator(9)=    1.169519E-3	!  p1^8
+!--------------------------------------------------------------------------!
+kx=2/(_norm(1,2)-_norm(1,1))
+cx=_norm(1,1)+1/kx
+
+
+_term(1)=1.0
+
+
+*DO,i,2,order+1
+	_term(i)=lambda_um**(i-1)
+*ENDDO
+
+Pn=0	! numerator
+Pd=0	! denominator
+
+*DO,i,1,order+1
+	Pn = Pn + _numerator(i)*_term(i)
+	Pd = Pd + _denominator(i)*_term(i)
+*ENDDO
+
+n2=Pn/Pd
+k2=0.0
+
+! real part of epsilon
+epsilon_re=n2-k2
+! imag part of epsilon
+epsilon_im=0.0
+!--------------------------------------------------------------------------!
+! delete local parameters
+*DEL,_norm
+*DEL,_numerator
+*DEL,_denominator
+*DEL,_term
+!==========================================================================!
+!==========================================================================!
