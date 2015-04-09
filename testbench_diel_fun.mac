@@ -1,1 +1,23 @@
-! testbench
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+!
+! Filename: testbench_diel_fun.mac, ANSYS APDL script
+! by Kolchuzhin V., TU Chemnitz, MMT
+! <vladimir.kolchuzhin@etit.tu-chemnitz.de>
+!
+! Issue: testbench für dielectric functions
+!
+! www.zfm.tu-chemnitz.de/for1713
+! TP2<->TP4
+!
+! Reference:
+!
+! Rev.: 15:30 16.03.2015
+!
+! Files:
+!
+!==========================================================================!
+!
+!
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
