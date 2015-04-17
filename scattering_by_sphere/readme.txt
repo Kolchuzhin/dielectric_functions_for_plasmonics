@@ -1,1 +1,1 @@
-scattering by sphere
+electormagnetic (plane wave) scattering by sphere
