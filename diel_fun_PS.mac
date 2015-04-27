@@ -1,0 +1,123 @@
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+!
+! Filename: diel_fun_PS.mac, ANSYS APDL script
+! by Kolchuzhin V., TU Chemnitz, LMGT
+! <vladimir.kolchuzhin@etit.tu-chemnitz.de>
+! 16:20 17.10.2013
+!
+! www.zfm.tu-chemnitz.de/for1713
+! TP2<->TP4
+!
+! Issue: MP: dielectric function of (C8H8)n (Polystyrene, PS) vs lambda:
+!	     eps=eps_real + i*eps_imag
+!
+! Rev.:
+!
+!	17:41 27.04.2015
+!
+! Status: OK
+!
+! Reference: 
+!	http://refractiveindex.info/?shelf=organic&book=polystyren&page=Sultanova
+!	(fit of the experimental data with the Sellmeier dispersion formula)
+!
+!	N. Sultanova, S. Kasarova and I. Nikolov. 
+!	Dispersion properties of optical polymers, 
+!	Acta Physica Polonica A 116, 585-587 (2009)
+!
+!	Wavelength: (0.4358...1.052) µm, at 20 C;
+!
+!==========================================================================!
+! INPUT:
+!		arg1==lambda, wavelength in nm
+!
+! OUTPUT:
+!		epsilon_re - is the real part of dielectric function
+!		epsilon_im - is the imag part of dielectric function
+!
+! USAGE:	diel_fun_PS,514
+!
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+!
+! Refractive index / Dispersion formula
+! n=SQRT(1+1.4435/(1-0.020216/x**2))
+!
+!
+! test data
+!
+!	arg1=514.0	! WAVELENGTH, GREEN
+!	arg1=632.8	! WAVELENGTH, RED
+!
+!--------------------------------------------------------------------------!
+
+lambda=arg1			! nm
+!EineV=1239.84187/arg1		! nm --> eV
+lambda_um=arg1/1000		! nm --> um
+
+density=1.0e3		! PS mass density, kg/m3  (0.96–1.04 g/cm3)
+
+!==========================================================================!
+!==========================================================================!
+! n**2 - refractive index
+
+order=2
+
+*DEL,_norm		$*DIM,_norm,,4,4
+*DEL,_numerator		$*DIM,_numerator,,order+1,1
+*DEL,_denominator	$*DIM,_denominator,,order+1,1
+*DEL,_term 		$*DIM,_term,,order+1,1
+!--------------------------------------------------------------------------!
+! data
+
+_norm(1,1)=0.0	$_norm(1,2)=2.00000000e+00	! xmin xmax
+_norm(2,1)=1.0 	$_norm(2,2)=1.00000000e+00	! f_max dim
+
+_numerator(1)=      -0.0202161	!  p1^0
+_numerator(2)=       0.0	!  p1^1
+_numerator(3)=       1.4435+1.0	!  p1^2
+
+
+_denominator(1)=    -0.020216	!  p1^0
+_denominator(2)=     0.0 	!  p1^1
+_denominator(3)=     1.0	!  p1^2
+
+!--------------------------------------------------------------------------!
+kx=2/(_norm(1,2)-_norm(1,1))
+cx=_norm(1,1)+1/kx
+
+
+_term(1)=1.0
+
+
+*DO,i,2,order+1
+	_term(i)=lambda_um**(i-1)
+*ENDDO
+
+Pn=0	! numerator
+Pd=0	! denominator
+
+*DO,i,1,order+1
+	Pn = Pn + _numerator(i)*_term(i)
+	Pd = Pd + _denominator(i)*_term(i)
+*ENDDO
+
+n2=Pn/Pd
+k2=0.0
+
+! real part of epsilon
+epsilon_re=n2-k2
+
+! imag part of epsilon
+epsilon_im=0.0
+
+!--------------------------------------------------------------------------!
+! delete local parameters
+*DEL,_norm
+*DEL,_numerator
+*DEL,_denominator
+*DEL,_term
+
+!==========================================================================!
+!==========================================================================!
