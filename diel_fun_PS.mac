@@ -74,7 +74,7 @@ order=2
 _norm(1,1)=0.0	$_norm(1,2)=2.00000000e+00	! xmin xmax
 _norm(2,1)=1.0 	$_norm(2,2)=1.00000000e+00	! f_max dim
 
-_numerator(1)=      -0.0202161	!  p1^0
+_numerator(1)=      -0.020216	!  p1^0
 _numerator(2)=       0.0	!  p1^1
 _numerator(3)=       1.4435+1.0	!  p1^2
 
