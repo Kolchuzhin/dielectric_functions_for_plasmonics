@@ -21,3 +21,48 @@
 !
 !xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
 !xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx!
+ ! pi	lower bound
+ ! pf	upper bound
+ ! po	initial value
+ ! pc	current value
+ ! ID   parameter's name
+!==========================================================================!
+!==========================================================================!
+mac_name='diel_fun_PS'
+pi1=436.8e-9 $pf1=1052e-9 $po1=200e-9 $dp1=0.1e-9 $np1=0 $p1_ID='wavelength' $key_model= 0	! PS
+!==========================================================================!
+!==========================================================================!
+*IF,np1,EQ,0,THEN		! 
+ np1=NINT((pf1-pi1)/dp1)+1	! if np1=0
+*ENDIF
+
+*IF,dp1,EQ,0,THEN		! 
+ dp1=(pf1-pi1)/(np1-1)		! if dp1=0
+*ENDIF
+
+*DEL,data $*DIM,data,ARRAY,np1,4
+!==========================================================================!
+
+ip1_start=1	!   start
+ !ip1_start=88	! restart
+
+
+*DO,ip1,ip1_start,np1
+	!-------------------
+	p1_i=pi1+dp1*(ip1-1)
+	!-------------------
+	%mac_name%,p1_i*1e9,key_model
+	!-------------------
+	data(ip1,1)=p1_i	!  wavelength
+	data(ip1,2)=epsilon_re	! real(epsilon)
+	data(ip1,3)=epsilon_im	! imag(epsilon)
+	data(ip1,4)=density
+	!-------------------
+*ENDDO
+
+! write array
+*mwrite,data,%mac_name%,dat
+(4E20.12)
+
+!==========================================================================!
+!==========================================================================!
